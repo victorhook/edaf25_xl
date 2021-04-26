@@ -32,15 +32,7 @@ public class XLModel{
    */
   public void update(CellAddress address, String text) {
     System.out.printf("Address: %s, text: %s\n", address.toString(), text);
-    try {
-      Expr exression = parser.build(text);
 
-      exression.
-      System.out.println(exression.toString());
-    } catch (Exception e)
-    {
-      e.printStackTrace();
-    }
   }
 
   public void loadFile(File file) throws FileNotFoundException {
