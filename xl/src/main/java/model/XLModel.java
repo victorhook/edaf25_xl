@@ -44,6 +44,9 @@ public class XLModel implements ObservableModel, Environment {
    * @param text    the new code for the cell - can be raw text (starting with #) or an expression
    */
   public void update(CellAddress address, String text) {
+    if (text == null)
+      return;
+
     // Store the text in the matrix.
     sheet.put(address.toString(), text);
 
@@ -53,12 +56,12 @@ public class XLModel implements ObservableModel, Environment {
       Expr epxr = parser.build(text);
       ExprResult result = epxr.value(this);
       if (result.isError()) {
-        resultText = result.error();
+        resultText = "# ERROR: " + result.error();
       } else {
         resultText = String.valueOf(result.value());
       }
     } catch (IOException e) {
-      resultText = e.toString();
+      resultText = "# ERROR: " + e.toString();
     }
 
     String finalResultText = resultText;
