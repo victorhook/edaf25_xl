@@ -32,8 +32,7 @@ public class XL extends Application {
   public XL() {
     // TODO: add listener(s) for model?
     model.addListenever((CellAddress address, String newValue) -> {
-        cells.get(address.toString()).setText(newValue);
-        System.out.printf("LISTEN: %s, %s\n", address, newValue);
+        cellValueUpdated(address.toString(), newValue);
     });
   }
 

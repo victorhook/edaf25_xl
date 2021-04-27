@@ -12,20 +12,29 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class XLModel implements ObservableModel, Environment {
 
   public static final int COLUMNS = 10, ROWS = 10;
 
   private ExprParser parser;
-  private String sheet[][];
+  private Map<String, String> sheet;
   private List<ModelObserver> observers;
 
   public XLModel() {
     parser = new ExprParser();
-    sheet = new String[ROWS][COLUMNS];
     observers = new ArrayList<>();
+
+    // Create sheet.
+    sheet = new HashMap<>();
+    for (int r = 0; r < ROWS; r++) {
+      for (int c = 0; c < COLUMNS; c++) {
+        sheet.put(new CellAddress(r, c).toString(), "");
+      }
+    }
   }
 
   /**
@@ -36,15 +45,20 @@ public class XLModel implements ObservableModel, Environment {
    */
   public void update(CellAddress address, String text) {
     // Store the text in the matrix.
-    sheet[address.row][address.col] = text;
+    sheet.put(address.toString(), text);
 
     String resultText;
 
-    ExprResult result = value(text);
-    if (result.isError()) {
-      resultText = result.error();
-    } else {
-      resultText = String.valueOf(result.value());
+    try {
+      Expr epxr = parser.build(text);
+      ExprResult result = epxr.value(this);
+      if (result.isError()) {
+        resultText = result.error();
+      } else {
+        resultText = String.valueOf(result.value());
+      }
+    } catch (IOException e) {
+      resultText = e.toString();
     }
 
     String finalResultText = resultText;
@@ -52,24 +66,17 @@ public class XLModel implements ObservableModel, Environment {
   }
 
   @Override
-  public ExprResult value(String name) {
+  public ExprResult value(String address) {
     try {
-      return parser.build(name).value(this);
-    } catch(XLException e) {
-      System.out.println("Parse exception!");
-      return new ErrorResult("XLEception");
-      //e.printStackTrace();
-    } catch(IOException e) {
-      System.out.println("IOException!");
+      return parser.build(sheet.get(address)).value(this);
+    } catch (IOException e) {
       return new ErrorResult("IOException");
-    } catch(NullPointerException e) {
-      System.out.printf("Nullpointer, text is probably empty: %s\n", name);
-      return new ErrorResult("Nullpointer");
     }
+
   }
 
   public String readCell(CellAddress address) {
-    return sheet[address.row][address.col];
+    return sheet.get(address.toString());
   }
 
   public void loadFile(File file) throws FileNotFoundException {
