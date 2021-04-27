@@ -39,11 +39,9 @@
 
 ## 9.
 *När ett uttryck som består av en adress skall beräknas används gränssnittet Environment. Vilken klass skall implementera gränssnittet? Varför använder man inte klassnamnet i stället för gränssnittet?*
--
+- `XLModel` implementerar `Envorionment`.
+- Man vill inte använda klassnamnet för att vi vill bara åt en viss metod från env, samt att tillåta flera olika implementationer av miljön. Bra för testning exempelvis!
 
 ## 10.
- Om ett uttryck i kalkylarket refererar till sig själv, direkt eller indirekt, så kommer det att bli
-## bekymmer 
-vid beräkningen av uttryckets värde. Föreslå något sätt att upptäcka sådana cirkulära
-## beroenden!
- Det finns en elegant lösning med hjälp av strategimönstret so
+*Om ett uttryck i kalkylarket refererar till sig själv, direkt eller indirekt, så kommer det att bli bekymmer vid beräkningen av uttryckets värde. Föreslå något sätt att upptäcka sådana cirkulära beroenden! Det finns en elegant lösning med hjälp av strategimönstret som du får chansen att upptäcka. Om du inte hittar den så kommer handledaren att avslöja den.*
+- Man kan använda en mängd för att hålla koll på vilka addresser som är besökta.
