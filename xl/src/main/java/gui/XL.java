@@ -31,13 +31,18 @@ public class XL extends Application {
 
   public XL() {
     // TODO: add listener(s) for model?
+    model.addListenever((CellAddress address, String newValue) -> {
+        cells.get(address.toString()).setText(newValue);
+        System.out.printf("LISTEN: %s, %s\n", address, newValue);
+    });
   }
 
   public void onCellSelected(GridCell cell) {
     currentCell.set(cell);
   }
 
-  @Override public void start(Stage stage) throws Exception {
+  @Override
+  public void start(Stage stage) throws Exception {
     GridPane sheet = new GridPane();
     for (int c = 0; c < XLModel.COLUMNS; ++c) {
       Label lbl = new ColumnHeader(c);
@@ -46,6 +51,8 @@ public class XL extends Application {
     }
     Label addressLbl = new Label("?? =");
     addressLbl.setMinWidth(35);
+
+    /* -- Create cells -- */
     for (int r = 0; r < XLModel.ROWS; ++r) {
       Label lbl = new RowHeader(r);
       GridPane.setConstraints(lbl, 0, r + 1);
@@ -60,6 +67,8 @@ public class XL extends Application {
         sheet.getChildren().add(cell);
       }
     }
+
+    /* -- Editor -- */
     TextField editor = new TextField();
     editor.setMinWidth(320);
     editor.setDisable(true);
@@ -70,6 +79,8 @@ public class XL extends Application {
         model.update(cell.address, editor.getText());
       }
     });
+
+    /* -- Current cell callbacks -- */
     currentCell.addListener((observable, oldValue, newValue) -> {
       if (oldValue != null) {
         oldValue.onDeselect();
@@ -78,12 +89,19 @@ public class XL extends Application {
         addressLbl.setText(newValue.address.toString() + " =");
         editor.setDisable(false);
         // TODO: update editor text.
+        String text = model.readCell((newValue.address));
+        editor.setText(text);
+
+        System.out.printf("%s, %s\n", oldValue, newValue);
+
         editor.requestFocus();
       } else {
         addressLbl.setText("?? =");
         editor.setDisable(true);
       }
     });
+
+    /* -- UI & cells. -- */
     HBox editBox = new HBox(5);
     editBox.setAlignment(Pos.BASELINE_LEFT);
     editBox.getChildren().add(addressLbl);
@@ -104,6 +122,7 @@ public class XL extends Application {
     container.getChildren().add(content);
     VBox.setVgrow(content, Priority.ALWAYS);
 
+    /* -- Create the scene -- */
     Scene scene = new Scene(container);
     stage.setTitle("XL - Sheet1");
     stage.setScene(scene);
