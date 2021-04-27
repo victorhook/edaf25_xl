@@ -11,10 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class XLModel implements ObservableModel, Environment {
 
@@ -23,10 +20,12 @@ public class XLModel implements ObservableModel, Environment {
   private ExprParser parser;
   private Map<String, String> sheet;
   private List<ModelObserver> observers;
+  private Set<String> visited;
 
   public XLModel() {
     parser = new ExprParser();
     observers = new ArrayList<>();
+    visited = new HashSet<>();
 
     // Create sheet.
     sheet = new HashMap<>();
@@ -51,6 +50,7 @@ public class XLModel implements ObservableModel, Environment {
     sheet.put(address.toString(), text);
 
     String resultText = "";
+    visited.clear();
 
     if (!text.equals("")) {
       try {
@@ -72,6 +72,12 @@ public class XLModel implements ObservableModel, Environment {
 
   @Override
   public ExprResult value(String address) {
+    if (visited.contains(address)) {
+      return new ErrorResult("Circular dependencies");
+    }
+
+    visited.add(address);
+
     try {
       return parser.build(sheet.get(address)).value(this);
     } catch (IOException e) {
