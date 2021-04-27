@@ -50,18 +50,20 @@ public class XLModel implements ObservableModel, Environment {
     // Store the text in the matrix.
     sheet.put(address.toString(), text);
 
-    String resultText;
+    String resultText = "";
 
-    try {
-      Expr epxr = parser.build(text);
-      ExprResult result = epxr.value(this);
-      if (result.isError()) {
-        resultText = "# ERROR: " + result.error();
-      } else {
-        resultText = String.valueOf(result.value());
+    if (!text.equals("")) {
+      try {
+        Expr epxr = parser.build(text);
+        ExprResult result = epxr.value(this);
+        if (result.isError()) {
+          resultText = "# ERROR: " + result.error();
+        } else {
+          resultText = String.valueOf(result.value());
+        }
+      } catch (IOException e) {
+        resultText = "# ERROR: " + e.toString();
       }
-    } catch (IOException e) {
-      resultText = "# ERROR: " + e.toString();
     }
 
     String finalResultText = resultText;

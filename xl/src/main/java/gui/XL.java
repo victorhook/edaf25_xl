@@ -144,6 +144,17 @@ public class XL extends Application {
     }
   }
 
+  public void clearSelected() {
+    System.out.println("DHSAJKDSA");
+    model.update(currentCell.get().address, "");
+  }
+
+  public void clearAll() {
+    for (GridCell cell: cells.values()) {
+      model.update(cell.address, "");
+    }
+  }
+
   public void saveFile(File file) {
     model.saveFile(file);
   }

@@ -5,6 +5,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
+import model.XLModel;
 
 public class XLMenu extends MenuBar {
   public XLMenu(XL xl, Stage stage) {
@@ -18,9 +19,11 @@ public class XLMenu extends MenuBar {
     Menu editMenu = new Menu("Edit");
     MenuItem clear = new MenuItem("Clear");
     clear.setOnAction(event -> {
+      xl.clearSelected();
     });
     MenuItem clearAll = new MenuItem("ClearAll");
     clearAll.setOnAction(event -> {
+      xl.clearAll();
     });
     editMenu.getItems().addAll(clear, clearAll);
     getMenus().addAll(fileMenu, editMenu);
