@@ -30,6 +30,17 @@ public class CellAddress {
     return "" + (row + 1);
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    CellAddress other = (CellAddress) obj;
+    return col == other.col && row == other.row;
+  }
+
+  @Override
+  public int hashCode() {
+    return this.toString().hashCode();
+  }
+
   @Override public String toString() {
     return columnAddress(col) + rowAddress(row);
   }

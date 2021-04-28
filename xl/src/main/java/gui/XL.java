@@ -75,7 +75,9 @@ public class XL extends Application {
       // This listener is called when the user presses the enter key in the editor.
       GridCell cell = currentCell.get();
       if (cell != null) {
+
         model.update(cell.address, editor.getText());
+        model.updateAll();
       }
     });
 
@@ -88,7 +90,7 @@ public class XL extends Application {
         addressLbl.setText(newValue.address.toString() + " =");
         editor.setDisable(false);
         // TODO: update editor text.
-        String text = model.readCell((newValue.address));
+        String text = model.readCellRaw((newValue.address));
         editor.setText(text);
         editor.requestFocus();
       } else {
@@ -137,6 +139,11 @@ public class XL extends Application {
   public void loadFile(File file) {
     try {
       model.loadFile(file);
+      cells.values().forEach(cell -> {
+        String rawString = model.readCellRaw(cell.address);
+        //model.update();
+      });
+      //model.readCell();
     } catch (IOException e) {
     }
   }
