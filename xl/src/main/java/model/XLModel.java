@@ -43,19 +43,26 @@ public class XLModel implements ObservableModel, Environment {
    * @param text    the new code for the cell - can be raw text (starting with #) or an expression
    */
   public void update(CellAddress address, String text) {
+    // Exit early if input is null.
     if (text == null)
       return;
 
-    // Store the text in the matrix.
+    // Store the text in the map.
     sheet.put(address.toString(), text);
 
-    String resultText = "";
+    // Clear visited address combinations.
     visited.clear();
+    String resultText = "";
 
     if (!text.equals("")) {
       try {
+        // Build the expression.
         Expr epxr = parser.build(text);
+
+        // Parse the expression, which can lead to value() being called.
         ExprResult result = epxr.value(this);
+
+        // Do some cleanup of the text format.
         if (result.isError()) {
           resultText = "# ERROR: " + result.error();
         } else {
@@ -70,16 +77,28 @@ public class XLModel implements ObservableModel, Environment {
     observers.forEach(obs -> obs.modelChange(address, finalResultText));
   }
 
+
   @Override
   public ExprResult value(String address) {
-    if (visited.contains(address)) {
-      return new ErrorResult("Circular dependencies");
+    // Read the *raw* text from the XL sheet.
+    String valueInSheet = sheet.get(address);
+
+    if (isCell(valueInSheet)) {
+      // If the value is an address, we need to cache it to ensure we're not circulating!
+      // String is format of: CELL_FROM->CELL_TO (without the arrow)
+      String cacheString = address + valueInSheet;
+
+      if (visited.contains(cacheString)) {
+        // If we've already visited this address combination, we exit.
+        return new ErrorResult("Circular dependencies!");
+      }
+
+      // Mark that we've visited the address combination.
+      visited.add(cacheString);
     }
 
-    visited.add(address);
-
     try {
-      return parser.build(sheet.get(address)).value(this);
+      return parser.build(valueInSheet).value(this);
     } catch (IOException e) {
       return new ErrorResult("IOException");
     }
@@ -90,8 +109,15 @@ public class XLModel implements ObservableModel, Environment {
     return sheet.get(address.toString());
   }
 
-  public void loadFile(File file) throws FileNotFoundException {
+  public void loadFile(File file) throws IOException {
     XLBufferedReader reader = new XLBufferedReader(file);
+    String line;
+    while ((line = reader.readLine()) != null) {
+      String split[] = line.split("=");
+      String cell = split[0];
+      String value = split[1];
+
+    }
   }
 
   public void saveFile(File file) {
@@ -105,6 +131,14 @@ public class XLModel implements ObservableModel, Environment {
   @Override
   public void deleteAllListeners() {
     observers.clear();
+  }
+
+
+  /* --- Private --- */
+
+  /* Helper method to tell if a given address is a cell or not. */
+  private boolean isCell(String address) {
+    return sheet.keySet().contains(address);
   }
 
 }
