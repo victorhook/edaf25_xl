@@ -90,9 +90,6 @@ public class XL extends Application {
         // TODO: update editor text.
         String text = model.readCell((newValue.address));
         editor.setText(text);
-
-        System.out.printf("%s, %s\n", oldValue, newValue);
-
         editor.requestFocus();
       } else {
         addressLbl.setText("?? =");
