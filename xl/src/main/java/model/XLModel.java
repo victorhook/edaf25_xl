@@ -18,8 +18,14 @@ public class XLModel implements ObservableModel, Environment {
   public static final int COLUMNS = 10, ROWS = 10;
 
   private ExprParser parser;
+
+  // Maps from: CellAddress -> CellRawString
   private Map<String, String> sheet;
+
+  // Contains all all observers to notify when needed.
   private List<ModelObserver> observers;
+
+  // Used to identify circular dependencies.
   private Set<String> visited;
 
   public XLModel() {
@@ -27,7 +33,7 @@ public class XLModel implements ObservableModel, Environment {
     observers = new ArrayList<>();
     visited = new HashSet<>();
 
-    // Create sheet.
+    // Create & fill a new sheet.
     sheet = new HashMap<>();
     for (int r = 0; r < ROWS; r++) {
       for (int c = 0; c < COLUMNS; c++) {
@@ -43,21 +49,26 @@ public class XLModel implements ObservableModel, Environment {
    * @param text    the new code for the cell - can be raw text (starting with #) or an expression
    */
   public void update(CellAddress address, String text) {
-    // Store the text in the map.
+    // Store the RAW text in the map.
     sheet.put(address.toString(), text);
+
     // Update all cells.
     updateAll();
   }
 
-
-
   /*
-     Updates ALL cells.
+     Updates all cells.
      Note that this method does NOT modify any values, but simply calculates the expression results and
      notifies the observers.
    */
   public void updateAll() {
-    sheet.entrySet().forEach(entry -> update(entry.getKey(), entry.getValue()));
+    sheet.entrySet().forEach(entry -> {                         // Map is format:   Address : Raw string value
+      String address = entry.getKey();
+      String rawString = entry.getValue();
+
+      String calculatedValue = calculateValue(rawString);       // Calculate the value for the frontend.
+      notifyObservers(address, calculatedValue);                // Notify listening observers with the calculated value.
+    });
   }
 
   @Override
@@ -94,7 +105,6 @@ public class XLModel implements ObservableModel, Environment {
     }
   }
 
-
   /* Returns the raw string of the cell. */
   public String readCellRaw(CellAddress address) {
     return sheet.get(address.toString());
@@ -127,39 +137,32 @@ public class XLModel implements ObservableModel, Environment {
 
   /* --- Private --- */
 
-  /* Calculates the value of a string expressions. */
-  private String calculateValue(String text) {
-    String resultText = "";
-
-    if (text != null && !text.equals("")) {
-      resultText = parseExpr(text);
-    }
-
-    return resultText;
+  /* Notifies all observers for the given address. */
+  private void notifyObservers(String address, String newText) {
+    CellAddress cellAddress = stringToCellAddress(address);
+    observers.forEach(obs -> obs.modelChange(cellAddress, newText));
   }
 
-  /* Updates a given cell. */
-  private void update(String address, String text) {
+  /* Turns an address string into a CellAddress object. */
+  private CellAddress stringToCellAddress(String address) {
     int col = address.substring(0, 1).toCharArray()[0] - 'A';
     int row = Integer.parseInt(address.substring(1)) - 1;
-
-    CellAddress cellAddress = new CellAddress(col, row);
-    String value = calculateValue(text);
-    notifyObservers(cellAddress, value);
+    return new CellAddress(col, row);
   }
 
-  /* Notifies all observers. */
-  private void notifyObservers(CellAddress address, String value) {
-    observers.forEach(obs -> obs.modelChange(address, value));
-  }
-
-  /* Helper method to parse an expression.
-     Returns the finished (polished) result as a string.
+  /* Calculates the value of a string expressions.
+     Returns the finished (calculated) result as a string.
    */
-  private String parseExpr(String expr) {
+  private String calculateValue(String expr) {
+    // Returns early if input is invalid or empty.
+    if (expr == null || expr.equals("")) {
+      return "";
+    }
+
     // Clear visited address combinations.
     visited.clear();
     String resultText = "";
+
 
     if (isComment(expr)) {
       resultText = expr.substring(1);
