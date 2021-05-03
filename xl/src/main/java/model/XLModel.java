@@ -72,6 +72,8 @@ public class XLModel implements ObservableModel, Environment {
   public ExprResult value(String address) {
     // Read the *raw* text from the XL sheet.
     String valueInSheet = sheet.get(address);
+    // If the value is another cells address, we must make it uppercase to find it.
+    valueInSheet = valueInSheet.toUpperCase();
 
     // Check for possible errors in addressing.
     if (valueInSheet.equals("")) {

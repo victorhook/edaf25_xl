@@ -153,6 +153,11 @@ public class XL extends Application {
   }
 
   public void saveFile(File file) {
-    model.saveFile(file);
+    try {
+      model.saveFile(file);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
+
 }
