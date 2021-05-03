@@ -2,3 +2,6 @@
 *.class.gradle/
 build/*
 .idea/
+.gradle/*
+build/
+.gradle/
