@@ -12,13 +12,16 @@ public class XLBufferedReader extends BufferedReader {
     super(new FileReader(file));
   }
 
-  // TODO Change Object to something appropriate
-  public void load(Map<String, Object> map) throws IOException {
+  public void load(Map<String, String> map) throws IOException {
     try {
       while (ready()) {
-        String string = readLine();
-        int i = string.indexOf('=');
-        // TODO
+        String line;
+        while ((line = readLine()) != null) {
+          String split[] = line.split("=");
+          String address = split[0];
+          String value = split[1];
+          map.put(address, value);
+        }
       }
     } catch (Exception e) {
       throw new XLException(e.getMessage());
