@@ -113,10 +113,11 @@ public class XLModel implements ObservableModel, Environment {
     String line;
     while ((line = reader.readLine()) != null) {
       String split[] = line.split("=");
-      String cell = split[0];
+      String address = split[0];
       String value = split[1];
-      //sheet.put(new CellAddress(), value);
+      sheet.put(address, value);
     }
+    updateAll();
   }
 
   public void saveFile(File file) {
