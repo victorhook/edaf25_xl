@@ -4,6 +4,7 @@ import expr.*;
 import util.XLBufferedReader;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -108,6 +109,7 @@ public class XLModel implements ObservableModel, Environment {
     return sheet.get(address.toString());
   }
 
+  /* Opens the content of a file and puts it in the sheet. */
   public void loadFile(File file) throws IOException {
     XLBufferedReader reader = new XLBufferedReader(file);
     String line;
@@ -120,7 +122,16 @@ public class XLModel implements ObservableModel, Environment {
     updateAll();
   }
 
+  /* Saves the sheet do a file on disk. */
   public void saveFile(File file) {
+    try{
+      FileWriter writer = new FileWriter(file);
+      for (Map.Entry<String,String>  cell: sheet.entrySet()) {
+        writer.write(cell.getKey() + cell.getValue() + "\n");
+      }
+    } catch( IOException exception){
+      exception.getStackTrace();
+    }
   }
 
   @Override
@@ -181,7 +192,10 @@ public class XLModel implements ObservableModel, Environment {
           resultText = errorMessage(result.error());
         } else {
           // No errors, then this is the final string value.
+          // result.value()
+
           resultText = String.valueOf(result.value());
+
         }
       } catch (IOException e) {
         resultText = errorMessage(e.getMessage());
