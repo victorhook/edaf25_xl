@@ -128,7 +128,7 @@ public class XLModel implements ObservableModel, Environment {
         String address = cell.getKey();
         String value = cell.getValue();
         if (value != null && !value.equals("")) {
-          String row = String.format("%s=%S\n", address, value);
+          String row = String.format("%s=%s\n", address, value);
           writer.write(row);
         }
       }
@@ -152,6 +152,18 @@ public class XLModel implements ObservableModel, Environment {
   public void notifyObservers(String address, String newText) {
     CellAddress cellAddress = stringToCellAddress(address);
     observers.forEach(obs -> obs.modelHasChanged(cellAddress, newText));
+  }
+
+  public void clearCell(CellAddress address) {
+    update(address, "");
+  }
+
+  /* Clears all cells. */
+  public void clearAll() {
+    for (String address: sheet.keySet()) {
+      sheet.put(address, "");
+    }
+    updateAll();
   }
 
   /* --- Private --- */

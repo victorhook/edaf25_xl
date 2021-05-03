@@ -139,24 +139,17 @@ public class XL extends Application {
   public void loadFile(File file) {
     try {
       model.loadFile(file);
-      cells.values().forEach(cell -> {
-        String rawString = model.readCellRaw(cell.address);
-        //model.update();
-      });
-      //model.readCell();
     } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 
   public void clearSelected() {
-    System.out.println("DHSAJKDSA");
-    model.update(currentCell.get().address, "");
+    model.clearCell(currentCell.get().address);
   }
 
   public void clearAll() {
-    for (GridCell cell: cells.values()) {
-      model.update(cell.address, "");
-    }
+    model.clearAll();
   }
 
   public void saveFile(File file) {
