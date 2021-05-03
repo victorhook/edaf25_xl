@@ -3,9 +3,7 @@ package model;
 import expr.*;
 import util.XLBufferedReader;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -125,11 +123,17 @@ public class XLModel implements ObservableModel, Environment {
   /* Saves the sheet do a file on disk. */
   public void saveFile(File file) {
     try{
-      FileWriter writer = new FileWriter(file);
+      PrintWriter writer = new PrintWriter(new FileOutputStream(file));
       for (Map.Entry<String,String>  cell: sheet.entrySet()) {
-        writer.write(cell.getKey() + cell.getValue() + "\n");
+        String address = cell.getKey();
+        String value = cell.getValue();
+        if (value != null && !value.equals("")) {
+          String row = String.format("%s=%S\n", address, value);
+          writer.write(row);
+        }
       }
-    } catch( IOException exception){
+      writer.close();
+    } catch(IOException exception){
       exception.getStackTrace();
     }
   }
@@ -193,9 +197,11 @@ public class XLModel implements ObservableModel, Environment {
         } else {
           // No errors, then this is the final string value.
           // result.value()
-
-          resultText = String.valueOf(result.value());
-
+          double resultValue = result.value();
+          if (resultValue % 1 == 0)                         // If we result is .0, we display it as an integer.
+            resultText = String.valueOf((int) resultValue);
+          else                                              // If the result contains decimal values, we include 4 decimals.
+            resultText = String.format("%.4f", resultValue);
         }
       } catch (IOException e) {
         resultText = errorMessage(e.getMessage());
