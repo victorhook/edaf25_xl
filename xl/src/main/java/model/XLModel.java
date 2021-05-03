@@ -154,6 +154,7 @@ public class XLModel implements ObservableModel, Environment {
     observers.forEach(obs -> obs.modelHasChanged(cellAddress, newText));
   }
 
+  /* Clears a given cell. */
   public void clearCell(CellAddress address) {
     update(address, "");
   }
