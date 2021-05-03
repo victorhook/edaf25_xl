@@ -1,18 +1,15 @@
 package model;
 
 import expr.*;
-import gui.CellSelectionObserver;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import util.XLBufferedReader;
-import util.XLException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.*;
 
+/**
+ * This class represents the XL sheet.
+ */
 public class XLModel implements ObservableModel, Environment {
 
   public static final int COLUMNS = 10, ROWS = 10;
@@ -77,14 +74,11 @@ public class XLModel implements ObservableModel, Environment {
     String valueInSheet = sheet.get(address);
 
     // Check for possible errors in addressing.
-    if (valueInSheet == null) {
-      System.out.printf("%s: %s, %s\n", address, valueInSheet, sheet);
+    if (valueInSheet.equals("")) {
       return new ErrorResult("Referencing an empty cell!");
     } else if (isComment(valueInSheet)) {
       return new ErrorResult("Referencing a comment");
-    }
-
-    if (isCell(valueInSheet)) {
+    } else if (isCell(valueInSheet)) {
       // If the value is an address, we need to cache it to ensure we're not circulating!
       // String is format of: CELL_FROM->CELL_TO (without the arrow)
       String cacheString = address + valueInSheet;
@@ -98,9 +92,13 @@ public class XLModel implements ObservableModel, Environment {
       visited.add(cacheString);
     }
 
+    // Call the parser again to find the value from the address.
+    // Note: This will cause recursion if cells are referencing other cells
+    // eg: A1 -> B1 will cause the value of B1 to be calculated first, then A1.
     try {
       return parser.build(valueInSheet).value(this);
     } catch (IOException e) {
+      // Parser
       return new ErrorResult(e.getMessage());
     }
   }
@@ -125,22 +123,26 @@ public class XLModel implements ObservableModel, Environment {
   }
 
   @Override
-  public void addListenever(ModelObserver observer) {
+  public void addObserver(ModelObserver observer) {
     observers.add(observer);
   }
 
   @Override
-  public void deleteAllListeners() {
+  public void clearObservers() {
     observers.clear();
   }
 
+  @Override
+  public void notifyObservers(String address, String newText) {
+    CellAddress cellAddress = stringToCellAddress(address);
+    observers.forEach(obs -> obs.modelHasChanged(cellAddress, newText));
+  }
 
   /* --- Private --- */
 
-  /* Notifies all observers for the given address. */
-  private void notifyObservers(String address, String newText) {
-    CellAddress cellAddress = stringToCellAddress(address);
-    observers.forEach(obs -> obs.modelChange(cellAddress, newText));
+  /* Returns an error message. */
+  private String errorMessage(String error) {
+    return "# ERROR: " + error;
   }
 
   /* Turns an address string into a CellAddress object. */
@@ -163,7 +165,6 @@ public class XLModel implements ObservableModel, Environment {
     visited.clear();
     String resultText = "";
 
-
     if (isComment(expr)) {
       resultText = expr.substring(1);
     } else {
@@ -176,12 +177,13 @@ public class XLModel implements ObservableModel, Environment {
 
         // Do some cleanup of the text format.
         if (result.isError()) {
-          resultText = "# ERROR: " + result.error();
+          resultText = errorMessage(result.error());
         } else {
+          // No errors, then this is the final string value.
           resultText = String.valueOf(result.value());
         }
       } catch (IOException e) {
-        resultText = "# ERROR: " + e.getMessage();
+        resultText = errorMessage(e.getMessage());
       }
     }
     return resultText;

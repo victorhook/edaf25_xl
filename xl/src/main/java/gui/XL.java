@@ -30,8 +30,7 @@ public class XL extends Application {
   XLModel model = new XLModel();
 
   public XL() {
-    // TODO: add listener(s) for model?
-    model.addListenever((CellAddress address, String newValue) -> {
+    model.addObserver((CellAddress address, String newValue) -> {
         cellValueUpdated(address.toString(), newValue);
     });
   }
@@ -89,9 +88,11 @@ public class XL extends Application {
       if (newValue != null) {
         addressLbl.setText(newValue.address.toString() + " =");
         editor.setDisable(false);
-        // TODO: update editor text.
+
+        // Update text editor.
         String text = model.readCellRaw((newValue.address));
         editor.setText(text);
+
         editor.requestFocus();
       } else {
         addressLbl.setText("?? =");
@@ -127,12 +128,11 @@ public class XL extends Application {
     stage.show();
   }
 
-  // TODO: called when the displayed value in a cell is updated.
   public void cellValueUpdated(String address, String value) {
     GridCell cell = cells.get(address);
     if (cell != null) {
-      cell.setText(value);
-      cell.setTooltip(new Tooltip(value));
+      cell.setText(value);                    // Updates the editor text
+      cell.setTooltip(new Tooltip(value));    // Updates the tooltip text.
     }
   }
 
