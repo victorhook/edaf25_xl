@@ -2,6 +2,7 @@ package gui;
 
 import gui.menu.XLMenu;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;

@@ -110,10 +110,10 @@ public class XLModel implements ObservableModel, Environment {
     return sheet.get(address.toString());
   }
 
-  /* Opens the content of a file and puts it in the sheet. */
+  /* Loads the content of a file and puts it in the sheet. */
   public void loadFile(File file) throws IOException {
-    XLBufferedReader reader = new XLBufferedReader(file);
-    reader.load(sheet);
+    clearAll();
+    new XLBufferedReader(file).load(sheet);
     updateAll();
   }
 
